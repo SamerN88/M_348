@@ -132,7 +132,7 @@ class InterpolatingPolynomial:
 def main():
     print('Code demo:\n')
 
-    points = [(0, 1), (2, 2), (3, 4), (1, 0), (math.pi, 6)]
+    points = [(0, 1), (2, 2), (3, 4), (1, 0)]
 
     print('Points:')
     print(*points, sep=', ')
