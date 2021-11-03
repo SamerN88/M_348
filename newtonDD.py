@@ -130,50 +130,60 @@ class InterpolatingPolynomial:
     def eval(self, x):
         return self.__call__(x)
 
-    def plot(self, x_min=None, x_max=None, y_min=None, y_max=None, x_label='x', y_label='y', title=None):
-        x_list = [p[0] for p in self.points]
-        y_list = [p[1] for p in self.points]
+    def plot(self,
+             x_min=None, x_max=None, y_min=None, y_max=None,
+             fxn=None, fxn_label=None,
+             title=None, x_label='x', y_label='y'
+             ):
 
-        # Determine appropriate x and y bounds for plot
+        x_coords = [p[0] for p in self.points]
+        y_coords = [p[1] for p in self.points]
 
-        min_x = min(x_list)
-        max_x = max(x_list)
+        # Determine appropriate x and y bounds for plot window
+
+        min_x = min(x_coords)
+        max_x = max(x_coords)
         x_range = max_x - min_x
 
-        min_y = min(y_list)
-        max_y = max(y_list)
+        min_y = min(y_coords)
+        max_y = max(y_coords)
         y_range = max_y - min_y
 
         if x_min is None:
-            x_min = min_x - (x_range / 4)
+            x_min = min_x - (x_range / 3)  # design decision: extend plot window by 1/3 of the points' x/y ranges
 
         if x_max is None:
-            x_max = max_x + (x_range / 4)
+            x_max = max_x + (x_range / 3)
 
         if y_min is None:
-            y_min = min_y - (y_range / 4)
+            y_min = min_y - (y_range / 3)
 
         if y_max is None:
-            y_max = max_y + (y_range / 4)
+            y_max = max_y + (y_range / 3)
 
         # Generate many (x,y) points to plot a seemingly smooth curve for the interpolant
-        x = np.linspace(x_min, x_max, 100)
+        x = np.linspace(x_min, x_max, 1000)
         y = np.array([self(i) for i in x])
 
         # Plot
-        plt.plot(x, y, color='red', linewidth=1)  # plot interpolant
-        plt.scatter(x=x_list, y=y_list, color='blue', zorder=100, s=15)  # plot initial points
+        plt.plot(x, y, color='red', linewidth=1, zorder=3, label='interpolant')  # plot interpolant
+        plt.scatter(x=x_coords, y=y_coords, color='blue', s=15, zorder=4)  # plot initial points
         plt.xlim((x_min, x_max))
         plt.ylim((y_min, y_max))
 
-        # Stylistic
+        # If a function is given, plot it to compare with the interpolant
+        if fxn is not None:
+            plt.plot(x, [fxn(i) for i in x], color='royalblue', linewidth=1, zorder=2, label=(fxn_label or 'function'))
+            plt.legend()
+
+        # Title, labels, and x/y axes
         if title is None:
             title = f'Interpolating Polynomial (degree={self.degree})'
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
-        plt.axvline(x=0, color='gray', linewidth=0.5)  # plot x-axis
-        plt.axhline(y=0, color='gray', linewidth=0.5)  # plot y-axis
+        plt.axvline(x=0, color='black', linewidth=0.5, zorder=0)  # plot x-axis
+        plt.axhline(y=0, color='black', linewidth=0.5, zorder=1)  # plot y-axis
 
         plt.show()
 
@@ -181,7 +191,10 @@ class InterpolatingPolynomial:
 def main():
     print('Code demo:\n')
 
-    points = [(0, 1), (2, 2), (3, 4), (1, 0)]
+    # points = [(0, 1), (2, 2), (3, 4), (1, 0)]
+
+    f = lambda t: math.cos(t)
+    points = [(i, f(i)) for i in np.linspace(0, math.pi, 4)]
 
     print('Points:')
     print(*points, sep=', ')
@@ -202,7 +215,7 @@ def main():
 
     print('Plot interpolant and initial points:')
     print('(plot opened in new window)')
-    P.plot()
+    P.plot(fxn=f, fxn_label='cos(x)', x_min=-math.pi, x_max=2*math.pi)
 
 
 if __name__ == '__main__':
