@@ -1,4 +1,6 @@
 import math
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def product(iterable):
@@ -128,6 +130,53 @@ class InterpolatingPolynomial:
     def eval(self, x):
         return self.__call__(x)
 
+    def plot(self, x_min=None, x_max=None, y_min=None, y_max=None, x_label='x', y_label='y', title=None):
+        x_list = [p[0] for p in self.points]
+        y_list = [p[1] for p in self.points]
+
+        # Determine appropriate x and y bounds for plot
+
+        min_x = min(x_list)
+        max_x = max(x_list)
+        x_range = max_x - min_x
+
+        min_y = min(y_list)
+        max_y = max(y_list)
+        y_range = max_y - min_y
+
+        if x_min is None:
+            x_min = min_x - (x_range / 4)
+
+        if x_max is None:
+            x_max = max_x + (x_range / 4)
+
+        if y_min is None:
+            y_min = min_y - (y_range / 4)
+
+        if y_max is None:
+            y_max = max_y + (y_range / 4)
+
+        # Generate many (x,y) points to plot a seemingly smooth curve for the interpolant
+        x = np.linspace(x_min, x_max, 100)
+        y = np.array([self(i) for i in x])
+
+        # Plot
+        plt.plot(x, y, color='red', linewidth=1)  # plot interpolant
+        plt.scatter(x=x_list, y=y_list, color='blue', zorder=100, s=15)  # plot initial points
+        plt.xlim((x_min, x_max))
+        plt.ylim((y_min, y_max))
+
+        # Stylistic
+        if title is None:
+            title = f'Interpolating Polynomial (degree={self.degree})'
+        plt.title(title)
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.axvline(x=0, color='gray', linewidth=0.5)  # plot x-axis
+        plt.axhline(y=0, color='gray', linewidth=0.5)  # plot y-axis
+
+        plt.show()
+
 
 def main():
     print('Code demo:\n')
@@ -142,13 +191,18 @@ def main():
     print_newtonDD_triangle(points)
     print()
 
-    print("Evaluating interpolant:")
-    p = InterpolatingPolynomial(points)
-    print(f'p(x) = {p}\n')
+    print("Evaluate interpolant:")
+    P = InterpolatingPolynomial(points)
+    print(f'P(x) = {P}')
 
-    for x in [0, 2, 3, 1, math.pi]:
-        print(f'x = {x}, p({x}) = {p(x)}')
+    for p in points:
+        x = p[0]
+        print(f'P({x}) = {P(x)}')
     print()
+
+    print('Plot interpolant and initial points:')
+    print('(plot opened in new window)')
+    P.plot()
 
 
 if __name__ == '__main__':
