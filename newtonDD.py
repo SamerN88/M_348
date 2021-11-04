@@ -130,6 +130,9 @@ class InterpolatingPolynomial:
     def eval(self, x):
         return self.__call__(x)
 
+    def error_at(self, x, fxn):
+        return abs(fxn(x) - self(x))
+
     def plot(self,
              x_min=None, x_max=None, y_min=None, y_max=None,
              fxn=None, fxn_label=None,
@@ -140,6 +143,9 @@ class InterpolatingPolynomial:
         y_coords = [p[1] for p in self.points]
 
         # Determine appropriate x and y bounds for plot window
+        # Design decision (implemented below):
+        #  - extend plot window horizontally (on both sides) by 1/3 of the points' x-range
+        #  - extend plot window vertically (on both sides) by 1/3 of the points' y-range
 
         min_x = min(x_coords)
         max_x = max(x_coords)
@@ -150,7 +156,7 @@ class InterpolatingPolynomial:
         y_range = max_y - min_y
 
         if x_min is None:
-            x_min = min_x - (x_range / 3)  # design decision: extend plot window by 1/3 of the points' x/y ranges
+            x_min = min_x - (x_range / 3)
 
         if x_max is None:
             x_max = max_x + (x_range / 3)
@@ -162,7 +168,7 @@ class InterpolatingPolynomial:
             y_max = max_y + (y_range / 3)
 
         # Generate many (x,y) points to plot a seemingly smooth curve for the interpolant
-        x = np.linspace(x_min, x_max, 1000)
+        x = np.linspace(x_min, x_max, 10000)
         y = np.array([self(i) for i in x])
 
         # Plot
@@ -179,6 +185,65 @@ class InterpolatingPolynomial:
         # Title, labels, and x/y axes
         if title is None:
             title = f'Interpolating Polynomial (degree={self.degree})'
+        plt.title(title)
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.axvline(x=0, color='black', linewidth=0.5, zorder=0)  # plot x-axis
+        plt.axhline(y=0, color='black', linewidth=0.5, zorder=1)  # plot y-axis
+
+        plt.show()
+
+    def plot_error(self, fxn,
+                   x_min=None, x_max=None, y_min=None, y_max=None,
+                   title=None, x_label='x', y_label='error'
+                   ):
+
+        x_coords = [p[0] for p in self.points]
+
+        # Determine appropriate x-bounds for plot window
+        # Design decision (implemented below):
+        #  - extend plot window horizontally (on both sides) by 1/3 of the points' x-range
+
+        min_x = min(x_coords)
+        max_x = max(x_coords)
+        x_range = max_x - min_x
+
+        if x_min is None:
+            x_min = min_x - (x_range / 3)
+
+        if x_max is None:
+            x_max = max_x + (x_range / 3)
+
+        # Determine appropriate y-bounds for plot window
+        # Design decision (implemented below):
+        #  - set initial y-bounds of plot window to max/min of the error inside the domain of the points
+        #  - then extend plot window vertically (on both sides) by 1/3 of the error range
+
+        x_coords_smooth = np.linspace(x_coords[0], x_coords[-1], 1000)
+        error_in_interval = [self.error_at(i, fxn) for i in x_coords_smooth]
+
+        min_error = min(error_in_interval)
+        max_error = max(error_in_interval)
+        error_range = max_error - min_error
+
+        if y_min is None:
+            y_min = min_error - (error_range / 3)
+
+        if y_max is None:
+            y_max = max_error + (error_range / 3)
+
+        # Generate many (x,y) points to plot a seemingly smooth curve for the error
+        x = np.linspace(x_min, x_max, 10000)
+        error = np.array([self.error_at(i, fxn) for i in x])
+
+        # Plot
+        plt.plot(x, error, color='magenta', linewidth=1, zorder=2)
+        plt.xlim((x_min, x_max))
+        plt.ylim((y_min, y_max))
+
+        # Title, labels, and x/y axes
+        if title is None:
+            title = f'Interpolant error'
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
@@ -216,6 +281,11 @@ def main():
     print('Plot interpolant and initial points:')
     print('(plot opened in new window)')
     P.plot(fxn=f, fxn_label='cos(x)', x_min=-math.pi, x_max=2*math.pi)
+    print()
+
+    print('Plot error:')
+    print('(plot opened in new window)')
+    P.plot_error(f)
 
 
 if __name__ == '__main__':
