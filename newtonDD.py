@@ -25,7 +25,7 @@ def newtonDD(points):
         return (newtonDD(points[1:]) - newtonDD(points[:-1])) / (points[-1][0] - points[0][0])
 
 
-def print_newtonDD_triangle(points):
+def print_newtonDD_triangle(points, precision=None):
     """
     Neatly prints Newton's DD triangle given a list of points to interpolate.
     :param points: an iterable of (x,y) pairs
@@ -41,7 +41,7 @@ def print_newtonDD_triangle(points):
         col = []
         for j in range(n-k + 1):
             dd = newtonDD(points[j: j + k])
-            col.append(dd)
+            col.append(dd if precision is None else round(dd, precision))
         cols[k] = col
 
     # 2) Format output
