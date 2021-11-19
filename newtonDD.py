@@ -130,7 +130,7 @@ class InterpolatingPolynomial:
     def eval(self, x):
         return self.__call__(x)
 
-    def error_at(self, x, fxn):
+    def error(self, x, fxn):
         return abs(fxn(x) - self(x))
 
     def plot(self,
@@ -220,7 +220,7 @@ class InterpolatingPolynomial:
         #  - then extend plot window vertically (on both sides) by 1/3 of the error range
 
         x_coords_smooth = np.linspace(x_coords[0], x_coords[-1], 1000)
-        error_in_interval = [self.error_at(i, fxn) for i in x_coords_smooth]
+        error_in_interval = [self.error(i, fxn) for i in x_coords_smooth]
 
         min_error = min(error_in_interval)
         max_error = max(error_in_interval)
@@ -234,7 +234,7 @@ class InterpolatingPolynomial:
 
         # Generate many (x,y) points to plot a seemingly smooth curve for the error
         x = np.linspace(x_min, x_max, 10000)
-        error = np.array([self.error_at(i, fxn) for i in x])
+        error = np.array([self.error(i, fxn) for i in x])
 
         # Plot
         plt.plot(x, error, color='magenta', linewidth=1, zorder=2)
